@@ -1,2 +1,2 @@
-# chaos-kakfa
+# Chaos Kafka
 Chaos scenarios for Kafka 💥
