@@ -1,0 +1,9 @@
+---
+  - name: Get the current date.
+    command: date
+    register: current_date
+    changed_when: false
+
+  - name: Print the current date.
+    debug:
+      msg: "{{ current_date.stdout }}"
