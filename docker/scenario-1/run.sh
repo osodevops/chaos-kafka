@@ -1,0 +1,41 @@
+#!/bin/bash
+
+docker-compose down -v
+docker-compose up -d
+
+source ../utils.sh
+
+KAFKA_1_IP=$(container_to_ip kafka-1)
+KAFKA_2_IP=$(container_to_ip kafka-2)
+KAFKA_3_IP=$(container_to_ip kafka-3)
+ZOO_IP=$(container_to_ip zookeeper)
+interface=eth0
+
+main() {
+
+	create_topic zookeeper test 1 3 1
+	sleep 5
+	get_state zookeeper
+	send_message kafka-1 'before partitions'
+	read_messages kafka-1
+
+	log "Network partition  Kafka-1 | Kafka-2, Kafka-3,  Zookeeper "
+	block_host kafka-1 $KAFKA_2_IP $KAFKA_3_IP $ZOO_IP
+
+	send_message kafka-1 'should not be ok, the invalid leader'
+	send_message kafka-3 'should be ok, the valid leader'
+
+	get_state zookeeper
+
+	log "Removing network partition"
+	remove_partition zookeeper kafka-1 kafka-2 kafka-3
+
+	sleep 15
+
+	get_state zookeeper
+
+	read_messages kafka-1
+	read_messages kafka-3
+}
+
+main
